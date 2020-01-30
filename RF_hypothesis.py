@@ -7,10 +7,13 @@
 
 
 """
-The purpose of this python script is to estimate the predictive power of a specific set of features that have been previously prioritized using a feature selection model.
-We have been given a reference value of balanced accuracy 0.55. Our goal is to assess whether applying these features in a random forest model can boost the performance metric.
+The purpose of this python script is to estimate the predictive power of a specific set of features that have been previously
+prioritized using a feature selection model.
+We have been given a reference value of balanced accuracy 0.55. 
+Our goal is to assess whether applying these features in a random forest model can boost the performance metric.
 
-Ths script allows for the user to shuffle the order of the input dataset to check if the splitting due to training can impact model performance. 
+Ths script allows for the user to shuffle the order of the input dataset to check if the splitting due to training
+can impact model performance. 
 We limit the number of possible shuffling instances to 10.
 
 In the virtual environment provided using pipenv, the user is prompted to enter a digit from 0 - 9. 
