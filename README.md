@@ -1,5 +1,5 @@
 # bioactivity_chem_structure_ML
-Generating an ensemble classification model from binary features descripting chemical structures to evaluate a hypothesis from previous modelling.
+Generating an ensemble classification model from binary features describing chemical structures to evaluate a hypothesis from previous modelling.
 
 To run the script:
 
