@@ -50,71 +50,82 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.base import clone
 
 
-# shuffle input to obtain more splitting points
-
-def shuffle_df(n_shuffles):
+def get_shuffled():
     """
-    Generate "n_shuffles" randomly shuffled instance of input data frame :
-    - in csv format & - named "input.csv"
-    input  : input.csv
-    output : tuple with size 2 containing:
-             df_list_seed: list of shuffling seeds
-             df_list: list of shuffled data frames
+    input:
+    output:
     """
+    # user can only enter digits 0 - 9
+    def get_input():
+        """
+         pick one dataframe allowing user to enter key of dataframe
+         user can only enter digits 0 - 9
+        """
 
-    # read the input file
-    df_input = pd.read_csv("input.csv")
-    df_indexed = df_input.set_index('chemical_identifier')
+        n_df = -1 # could be any value outside of accepted range
+        tries = 0
+        while not  0 <= n_df <= 9:
+            try:
+                n_df = int(input("Please enter a digit (0 - 9) : "))
+            except ValueError:
+                print("wrong input format")
+            tries += 1
+            if tries > 3:
+                print("Too many invalid inputs, exiting.....")
+                sys.exit()
+        return n_df
 
-    # generate random seed using current time
-    now = datetime.now()
-    initial_seed = int(now. strftime("%H%M%S%f"))
-    seed = initial_seed // 1000000000
-
-    # generate n data frames/seeds and add them to a list
-    df_list = {}
-    df_list_seed = {}
-    for i in range(n_shuffles):
-        random_state_seed = seed + i
-        df_shuffle = df_indexed.sample(frac=1, # shuffle keeping total number of rows
-                                       random_state=random_state_seed)
-        df_list[i] = df_shuffle
-        df_list_seed[i] = random_state_seed
-
-    return df_list_seed, df_list
+    n_df = get_input()
 
 
-# pick one dataframe allowing user to enter key of dataframe
-# user can only enter digits 0 - 9
-def get_input():
+    def shuffle_df():
+        """
+        Generate "n_shuffles" randomly shuffled instance of input data frame :
+        - in csv format & - named "input.csv"
+        input  : input.csv
+        output : tuple with size 2 containing:
+                 df_list_seed: list of shuffling seeds
+                 df_list: list of shuffled data frames
+        """
+        # read the input file
+        df_input = pd.read_csv("input.csv")
+        df_indexed = df_input.set_index('chemical_identifier')
+        # generate random seed using current time
+        now = datetime.now()
+        initial_seed = int(now. strftime("%H%M%S%f"))
+        seed = initial_seed // 1000000000
+        # generate n data frames/seeds and add them to a list
+        df_list = {}
+        df_list_seed = {}
+        for i in range(10):
+            random_state_seed = seed + i
+            df_shuffle = df_indexed.sample(frac=1, # shuffle keeping total number of rows
+                                           random_state=random_state_seed)
+            df_list[i] = df_shuffle
+            df_list_seed[i] = random_state_seed
 
-    n_df = -1 # could be any value outside of accepted range
-    tries = 0
-    while not  0 <= n_df <= 9:
-        try:
-            n_df = int(input("Please enter a digit (0 - 9) : "))
-        except ValueError:
-            print("wrong input format")
-        tries += 1
-        if tries > 3:
-            print("Too many invalid inputs, exiting.....")
-            sys.exit()
-    return n_df
+        return df_list_seed, df_list
+        # passing user value to pick shuffled data set
+    input_shuffled = shuffle_df()[1][n_df] # picking n = 10 to shuffle 10 times
 
-# passing user value to pick shuffled data set
-input_shuffled = shuffle_df(10)[1][n_df] # picking n = 10 to shuffle 10 times
+    return input_shuffled
+
+
 
 
 def split_prep(train_frac):
     """
     Prepare shuffled instance of input dataset for training and testing.
 
-    input:    value of fraction of rows for training
+    input:    train_frac;value of fraction of rows for training
+              input shuffled; shuffled instance of the data frame
     output:   tuple of lists of arrays in this order:
               hold_out (as external dataset, if model performance was optimized during testing)
               testing
               training
     """
+    # passing user value to pick shuffled data set
+    input_shuffled = get_shuffled()
 
     input_shuffled_bool = input_shuffled.astype(bool) # binary features and labels
 
@@ -130,73 +141,75 @@ def split_prep(train_frac):
     #  get per group a list of numpy arrays of features and labels
     # hold_out
     hold_out = []
-    hold_out_Y = np.array(input_shuffled_bool.iloc[0 : withheld_end, 0])
-    hold_out_X = np.array(input_shuffled_bool.iloc[0 : withheld_end, 1:])
-    hold_out.append(hold_out_X)
-    hold_out.append(hold_out_Y)
+    hold_out_y = np.array(input_shuffled_bool.iloc[0 : withheld_end, 0])
+    hold_out_x = np.array(input_shuffled_bool.iloc[0 : withheld_end, 1:])
+    hold_out.append(hold_out_x)
+    hold_out.append(hold_out_y)
 
     # testing
     testing = []
-    testing_Y = np.array(input_shuffled_bool.iloc[withheld_end : test_end, 0])
-    testing_X = np.array(input_shuffled_bool.iloc[withheld_end : test_end, 1:])
-    testing.append(testing_X)
-    testing.append(testing_Y)
+    testing_y = np.array(input_shuffled_bool.iloc[withheld_end : test_end, 0])
+    testing_x = np.array(input_shuffled_bool.iloc[withheld_end : test_end, 1:])
+    testing.append(testing_x)
+    testing.append(testing_y)
 
     # training
     training = []
-    training_Y = np.array(input_shuffled_bool.iloc[test_end : -1, 0])
-    training_X = np.array(input_shuffled_bool.iloc[test_end : -1, 1:])
-    training.append(training_X)
-    training.append(training_Y)
+    training_y = np.array(input_shuffled_bool.iloc[test_end : -1, 0])
+    training_x = np.array(input_shuffled_bool.iloc[test_end : -1, 1:])
+    training.append(training_x)
+    training.append(training_y)
 
     return hold_out, testing, training
 
 
 
-### Model building
-## Data prep
-# Get train and test datasets with split ratio 8:1:1.
-# Smaller training portions showed less predictive power.
-# train
-x_train = split_prep(0.8)[2][0]
-y_train = split_prep(0.8)[2][1]
-# test
-x_test = split_prep(0.8)[1][0]
-y_test = split_prep(0.8)[1][1]
-# hold_out as external dataset
-x_hold = split_prep(0.8)[0][0]
-y_hold = split_prep(0.8)[0][1]
 
-## Algorithm : RandomForest was selected to act as null hypothesis tester
-# Implementing 5-fold cross validation
+def get_ba():
+    """
+    input
+    output
 
-skfolds5 = StratifiedKFold(n_splits=5) # use stratified method to address label imbalance
+    """
 
-# initializing and instantiating
-rf = RandomForestClassifier()
-Balanced_accuracy_CV = 0
-Pos_accuracy_CV = 0
+    ### Model building
+    ## Data prep
+    # Get train and test datasets with split ratio 8:1:1.
+    # Smaller training portions showed less predictive power.
+    # train
+    x_train = split_prep(0.8)[2][0]
+    y_train = split_prep(0.8)[2][1]
+    ## Algorithm : RandomForest was selected to act as null hypothesis tester
+    # Implementing 5-fold cross validation
 
-# loop through the splits and get train and test subsets
-for train_index, test_index in skfolds5.split(x_train, y_train):
-    clone_rf = clone(rf)
-    x_train_folds = x_train[train_index]
-    y_train_folds = y_train[train_index]
-    x_test_fold = x_train[test_index]
-    y_test_fold = y_train[test_index]
+    skfolds5 = StratifiedKFold(n_splits=5) # use stratified method to address label imbalance
 
-    # train and test in the split clone and
-    # print predictive performance: balanced accuracy and specifically True-label prediction
-    clone_rf.fit(x_train_folds, y_train_folds)
-    y_pred = clone_rf.predict(x_test_fold)
-    tn, fp, fn, tp = confusion_matrix(y_test_fold, y_pred).flatten()
-    # performance metrics
-    BA = (tp/(tp+fn) + tn/(tn+fp))/2
-    Balanced_accuracy_CV += BA
-    PA = tp/(tp+fn)
-    Pos_accuracy_CV += PA
-    print("Balanced accuracy = ", round(BA, 3))
-    print("Positive space accuracy = ", round(PA, 3))
+    # initializing and instantiating
+    rf_c = RandomForestClassifier()
+    balanced_accuracy_cv = 0
+    pos_accuracy_cv = 0
 
-print("Average balanced accuracy = ", round(Balanced_accuracy_CV/5, 3))
-print("Average positive accuracy = ", round(Pos_accuracy_CV/5, 3))
+    # loop through the splits and get train and test subsets
+    for train_index, test_index in skfolds5.split(x_train, y_train):
+        clone_rf = clone(rf_c)
+        x_train_folds = x_train[train_index]
+        y_train_folds = y_train[train_index]
+        x_test_fold = x_train[test_index]
+        y_test_fold = y_train[test_index]
+
+        # train and test in the split clone and
+        # print predictive performance: balanced accuracy and specifically True-label prediction
+        clone_rf.fit(x_train_folds, y_train_folds)
+        y_pred = clone_rf.predict(x_test_fold)
+        tn_clone, fp_clone, fn_clone, tp_clone = confusion_matrix(y_test_fold, y_pred).flatten()
+        # performance metrics
+        ba_clone = (tp_clone/(tp_clone+fn_clone) + tn_clone/(tn_clone+fp_clone))/2
+        balanced_accuracy_cv += ba_clone
+        pa_clone = tp_clone/(tp_clone+fn_clone)
+        pos_accuracy_cv += pa_clone
+        print("Balanced accuracy = ", round(ba_clone, 3))
+        print("Positive space accuracy = ", round(pa_clone, 3))
+
+    print("Average balanced accuracy = ", round(balanced_accuracy_cv/5, 3))
+    print("Average positive accuracy = ", round(pos_accuracy_cv/5, 3))
+get_ba()
