@@ -8,7 +8,7 @@ run:
 git clone https://github.com/mshobair/RandomForest_hypothesis.git
 cd RandomForest_hypothesis
 pipenv install
-pipenv run python ./RF_hypothesis.py
+pipenv run python ./rf_hypothesis.py
 ```
 The output will have balanced accuracy values from cross-validations. Using the ensemble method to probe a null hypothesis, the features seem to perform comparable to the previous model. The previous model is rule-based to maximize the predictive power of integrating locally-bound models.
 
