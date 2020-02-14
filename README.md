@@ -12,3 +12,9 @@ pipenv run python ./rf_hypothesis.py
 ```
 The output will have balanced accuracy values from cross-validations. Using the ensemble method to probe a null hypothesis, the features seem to perform comparable to the previous model. The previous model is rule-based to maximize the predictive power of integrating locally-bound models.
 
+## The model could be used via a Flask API deployed on Heroku:
+
+run:
+```sh
+curl -X GET https://flask-rf.herokuapp.com/predict
+```
